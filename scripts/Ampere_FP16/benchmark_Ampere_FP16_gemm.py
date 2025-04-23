@@ -1,7 +1,7 @@
 import math
 import os
 
-from get_benchmark_shape_list import get_op_MNKList
+from utils.get_benchmark_shape_list import get_op_MNKList
 
 root_path = os.getcwd()
 

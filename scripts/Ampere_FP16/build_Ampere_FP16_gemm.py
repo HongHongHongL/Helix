@@ -67,41 +67,6 @@ def build_Helix_Ampere_FP16_gemm_kernel():
         pbar.update(1)
     print("Build finished.")
 
-def profile_Helix_Ampere_FP16_gemm_kernel():
-    if not os.path.exists(f"{root_path}/build/prof_dict"):
-        os.makedirs(f"{root_path}/build/prof_dict")
-
-    prof_dict = {}
-    print("Start profiling Ampere FP16 GEMM kernel ...")
-    with tqdm(total=(4*4*4*3*3)*2, desc="profiling") as pbar:
-        for K_STAGE in range(2, 6):
-            for WARP_ROWS in [16, 32, 64, 128]:
-                for WARP_COLS in [16, 32, 64, 128]:
-                    for BLOCK_ROWS_SCALE in [1, 2, 4]:
-                        for BLOCK_COLS_SCALE in [1, 2, 4]:
-                            BLOCK_ROWS = BLOCK_ROWS_SCALE * WARP_ROWS
-                            BLOCK_COLS = BLOCK_COLS_SCALE * WARP_COLS
-
-                            if not is_valid_config(BLOCK_ROWS_SCALE, BLOCK_COLS_SCALE, BLOCK_ROWS, BLOCK_COLS, WARP_ROWS, WARP_COLS):
-                                pbar.update(2)
-                                continue
-
-                            cmd = f"{root_path}/build/bin_fp16/gemm_{K_STAGE}_{BLOCK_ROWS}_{BLOCK_COLS}_{WARP_ROWS}_{WARP_COLS} {BLOCK_ROWS} {BLOCK_COLS} 4096"
-                            with os.popen(cmd) as result:
-                                cost = result.read().split()[-8]
-                                prof_dict[(K_STAGE, BLOCK_ROWS, BLOCK_COLS, WARP_ROWS, WARP_COLS, 0)] = float(cost)
-                                pbar.update(1)
-                            
-                            cmd_splitK = f"{root_path}/build/bin_fp16/gemm_splitK_{K_STAGE}_{BLOCK_ROWS}_{BLOCK_COLS}_{WARP_ROWS}_{WARP_COLS} {BLOCK_ROWS} {BLOCK_COLS} 4096"
-                            with os.popen(cmd_splitK) as result_splitK:
-                                cost_splitK = result_splitK.read().split()[-8]
-                                prof_dict[(K_STAGE, BLOCK_ROWS, BLOCK_COLS, WARP_ROWS, WARP_COLS, 1)] = float(cost_splitK)
-                                pbar.update(1)
-
-    with open(f'{root_path}/build/prof_dict/Ampere_FP16_cost_model.dict', 'w') as f:
-        f.write(str(prof_dict))
-    print("Profile finished.")
-
 def build_cublas_FP16_gemm_kernel():
     if not os.path.exists(f"{root_path}/build/bin_fp16"):
         os.makedirs(f"{root_path}/build/bin_fp16")
@@ -111,5 +76,4 @@ def build_cublas_FP16_gemm_kernel():
 if __name__ == "__main__":
 
     build_Helix_Ampere_FP16_gemm_kernel()
-    profile_Helix_Ampere_FP16_gemm_kernel()
     build_cublas_FP16_gemm_kernel()
