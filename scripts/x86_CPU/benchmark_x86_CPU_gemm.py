@@ -11,7 +11,7 @@ import onnx
 from onnx import helper, TensorProto
 import onnxruntime
 
-from utils.get_benchmark_shape_list import get_op_MNKList
+from utils.get_benchmark_shape_list import get_gemm_op_MNKList
 
 root_path = os.getcwd()
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         lines = f.readlines()
         prof_dict = eval(lines[0])
 
-    MNKList = get_op_MNKList()
+    MNKList = get_gemm_op_MNKList()
     for M, N, K in MNKList:
         helix_gflops = get_Helix_result(prof_dict, M, N, K)
         onnxruntime_gflops = get_onnxruntime_result(M, N, K)
