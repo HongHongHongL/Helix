@@ -20,7 +20,7 @@ def profile_Helix_Ampere_FP16_gemm_kernel():
 
     prof_dict = {}
     print("Start profiling Ampere FP16 GEMM kernel ...")
-    with tqdm(total=(4*4*4*3*3)*2, desc="profiling") as pbar:
+    with tqdm(total=(4*4*4*3*3+1)*2, desc="profiling") as pbar:
         for K_STAGE in range(2, 6):
             for WARP_ROWS in [16, 32, 64, 128]:
                 for WARP_COLS in [16, 32, 64, 128]:
@@ -44,6 +44,18 @@ def profile_Helix_Ampere_FP16_gemm_kernel():
                                 cost_splitK = result_splitK.read().split()[-8]
                                 prof_dict[(K_STAGE, BLOCK_ROWS, BLOCK_COLS, WARP_ROWS, WARP_COLS, 1)] = float(cost_splitK)
                                 pbar.update(1)
+
+        cmd_gemv = f"{root_path}/build/bin_fp16/gemv 1 128 1024"
+        with os.popen(cmd_gemv) as result_gemv:
+            cost_gemv = result_gemv.read().split()[-8]
+            prof_dict[(0, 1, 128, 0, 0, 0)] = float(cost_gemv)
+            pbar.update(1)
+
+        cmd_gemv_splitK = f"{root_path}/build/bin_fp16/gemv_splitK 1 128 1024"
+        with os.popen(cmd_gemv_splitK) as result_gemv_splitK:
+            cost_gemv_splitK = result_gemv_splitK.read().split()[-8]
+            prof_dict[(0, 1, 128, 0, 0, 1)] = float(cost_gemv_splitK)
+            pbar.update(1)
 
     with open(f'{root_path}/build/prof_dict/Ampere_FP16_cost_model.dict', 'w') as f:
         f.write(str(prof_dict))

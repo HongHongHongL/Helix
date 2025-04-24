@@ -17,7 +17,7 @@ def get_copy_value(base_value, threshold=4):
 def compile_sgemm(BM, BN, BK, TM, TN, WARP_ROW_THREAD, COPY_A, COPY_B):
     output_name = f"sgemm_{BM}_{BN}_{BK}_{TM}_{TN}_{WARP_ROW_THREAD}_{COPY_A}_{COPY_B}"
     compile_cmd = (
-        f"nvcc {root_path}/gemm_template/Ampere_FP32/sgemm.cu {COMPILE_OPTIONS} "
+        f"nvcc {root_path}/src_template/Ampere_FP32/sgemm.cu {COMPILE_OPTIONS} "
         f"-DBM={BM} -DBN={BN} -DBK={BK} "
         f"-DTM={TM} -DTN={TN} "
         f"-DWARP_ROW_THREAD={WARP_ROW_THREAD} "
@@ -29,7 +29,7 @@ def compile_sgemm(BM, BN, BK, TM, TN, WARP_ROW_THREAD, COPY_A, COPY_B):
 
 def compile_kernel(kernel_name):
     output_name = kernel_name
-    compile_cmd = f"nvcc {root_path}/gemm_template/Ampere_FP32/{kernel_name}.cu {COMPILE_OPTIONS}"
+    compile_cmd = f"nvcc {root_path}/src_template/Ampere_FP32/{kernel_name}.cu {COMPILE_OPTIONS}"
     
     compile_cmd += f" -o {root_path}/build/bin_fp32/{output_name}"
     os.system(compile_cmd)

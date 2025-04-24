@@ -391,6 +391,9 @@ int main(int arg, char* argv[]){
     for (int j = 0; j < test_num; j++){
         //int M = M_list[j], N = total_N, K = K_list[j];
         int M = std::atoi(argv[1]), N = std::atoi(argv[2]), K = std::atoi(argv[3]);
+        if (M < N) {
+            std::swap(M, N);
+        }
         //int M = 1024 * j, N = 1, K = 1024 * j;
 
         double max_sec = 0.0;

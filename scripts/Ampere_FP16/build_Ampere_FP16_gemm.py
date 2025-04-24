@@ -6,7 +6,7 @@ COMPILE_OPTIONS = "-O3 -std=c++17 -arch sm_80 -lcublas -w"
 
 def compile_kernel(kernel_name, k_stage=None, block_rows=None, block_cols=None, warp_rows=None, warp_cols=None):
     output_name = kernel_name
-    compile_cmd = f"nvcc {root_path}/gemm_template/Ampere_FP16/{kernel_name}.cu {COMPILE_OPTIONS}"
+    compile_cmd = f"nvcc {root_path}/src_template/Ampere_FP16/{kernel_name}.cu {COMPILE_OPTIONS}"
     
     if k_stage is not None:
         compile_cmd += f" -DK_STAGE={k_stage}"

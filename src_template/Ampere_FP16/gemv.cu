@@ -381,6 +381,9 @@ int main(int arg, char* argv[]){
     for (int j = 0; j < test_num; j++){
         //int M = M_list[j], N = total_N, K = K_list[j];
         int M = std::atoi(argv[1]), N = std::atoi(argv[2]), K = std::atoi(argv[3]);
+        if (M < N) {
+            std::swap(M, N);
+        }
         //int M = 1024 * j, N = 1, K = 1024 * j;
 
         double max_sec = 0.0;
@@ -399,7 +402,7 @@ int main(int arg, char* argv[]){
         double avg_Gflops = ((double)M) * N * K * 2 / 1e12 / (avg_sec / 1e3);
 
         printf("M N K = %6d %6d %6d, ", M, N, K);
-        printf("Time = %12.8lf %12.8lf %12.8lf ms, ", min_sec, avg_sec, max_sec);
+        printf("Time = %12.8lf %12.8lf %12.8lf ms, ", min_sec / 1e3, avg_sec / 1e3, max_sec / 1e3);
         printf("AVG Performance = %10.4lf Tflops\n", avg_Gflops);
         // printf("%10.4lf\n", avg_Gflops);
     }
