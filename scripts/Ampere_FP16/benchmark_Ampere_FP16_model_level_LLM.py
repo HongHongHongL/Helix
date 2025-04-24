@@ -45,19 +45,19 @@ if __name__ == "__main__":
 
     Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
 
-    helix_Bert_cost, onnxruntime_Bert_cost, mkl_Bert_cost = 0, 0, 0
+    helix_Bert_cost, cublas_Bert_cost = 0, 0
     for M, N, K in Bert_MNKList:
         helix_Bert_cost += get_Helix_result(prof_dict, M, N, K)
         cublas_Bert_cost += get_cublas_result(M, N, K)
     print(f'Bert: Helix: {helix_Bert_cost:.2f} ms, cublas: {cublas_Bert_cost:.2f} ms')
 
-    helix_LLAMA2_cost, onnxruntime_LLAMA2_cost, mkl_LLAMA2_cost = 0, 0, 0
+    helix_LLAMA2_cost, cublas_LLAMA2_cost = 0, 0
     for M, N, K in LLAMA2_MNKList:
         helix_LLAMA2_cost += get_Helix_result(prof_dict, M, N, K)
         cublas_LLAMA2_cost += get_cublas_result(M, N, K)
     print(f'LLAMA2: Helix: {helix_LLAMA2_cost:.2f} ms, cublas: {cublas_LLAMA2_cost:.2f} ms')
 
-    helix_GPT2_cost, onnxruntime_GPT2_cost, mkl_GPT2_cost = 0, 0, 0
+    helix_GPT2_cost, cublas_GPT2_cost = 0, 0
     for M, N, K in GPT2_MNKList:
         helix_GPT2_cost += get_Helix_result(prof_dict, M, N, K)
         cublas_GPT2_cost += get_cublas_result(M, N, K)

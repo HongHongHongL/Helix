@@ -190,19 +190,19 @@ if __name__ == "__main__":
     for M, N, K in Bert_MNKList:
         helix_Bert_cost += get_Helix_result(prof_dict, M, N, K)
         onnxruntime_Bert_cost += get_onnxruntime_result(M, N, K)
-        mkl_Bert_cost += get_ACL_result(M, N, K)
-    print(f'Bert: Helix: {helix_Bert_cost:.2f} ms, onnxruntime: {onnxruntime_Bert_cost:.2f} ms, ACL: {mkl_Bert_cost:.2f} ms')
+        acl_Bert_cost += get_ACL_result(M, N, K)
+    print(f'Bert: Helix: {helix_Bert_cost:.2f} ms, onnxruntime: {onnxruntime_Bert_cost:.2f} ms, ACL: {acl_Bert_cost:.2f} ms')
 
     helix_LLAMA2_cost, onnxruntime_LLAMA2_cost, mkl_LLAMA2_cost = 0, 0, 0
     for M, N, K in LLAMA2_MNKList:
         helix_LLAMA2_cost += get_Helix_result(prof_dict, M, N, K)
         onnxruntime_LLAMA2_cost += get_onnxruntime_result(M, N, K)
-        mkl_LLAMA2_cost += get_ACL_result(M, N, K)
-    print(f'LLAMA2: Helix: {helix_LLAMA2_cost:.2f} ms, onnxruntime: {onnxruntime_LLAMA2_cost:.2f} ms, ACL: {mkl_LLAMA2_cost:.2f} ms')
+        acl_LLAMA2_cost += get_ACL_result(M, N, K)
+    print(f'LLAMA2: Helix: {helix_LLAMA2_cost:.2f} ms, onnxruntime: {onnxruntime_LLAMA2_cost:.2f} ms, ACL: {acl_LLAMA2_cost:.2f} ms')
 
     helix_GPT2_cost, onnxruntime_GPT2_cost, mkl_GPT2_cost = 0, 0, 0
     for M, N, K in GPT2_MNKList:
         helix_GPT2_cost += get_Helix_result(prof_dict, M, N, K)
         onnxruntime_GPT2_cost += get_onnxruntime_result(M, N, K)
-        mkl_GPT2_cost += get_ACL_result(M, N, K)
-    print(f'GPT2: Helix: {helix_GPT2_cost:.2f} ms, onnxruntime: {onnxruntime_GPT2_cost:.2f} ms, ACL: {mkl_GPT2_cost:.2f} ms')
+        acl_GPT2_cost += get_ACL_result(M, N, K)
+    print(f'GPT2: Helix: {helix_GPT2_cost:.2f} ms, onnxruntime: {onnxruntime_GPT2_cost:.2f} ms, ACL: {acl_GPT2_cost:.2f} ms')
