@@ -178,31 +178,51 @@ def get_MKL_result(M, N, K):
     else:
         return 0
 
-if __name__ == "__main__":
-
+def x86_CPU_Helix_model_level_CNN_benchmark():
     with open(f'{root_path}/build/prof_dict/x86_CPU_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])
 
     AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
 
-    helix_AlexNet_cost, onnxruntime_AlexNet_cost, mkl_AlexNet_cost = 0, 0, 0
+    helix_AlexNet_cost, helix_ResNet_cost, helix_GoogleNet_cost = 0, 0, 0
     for M, N, K in AlexNet_MNKList:
         helix_AlexNet_cost += get_Helix_result(prof_dict, M, N, K)
-        onnxruntime_AlexNet_cost += get_onnxruntime_result(M, N, K)
-        mkl_AlexNet_cost += get_MKL_result(M, N, K)
-    print(f'AlexNet: Helix: {helix_AlexNet_cost:.2f} ms, onnxruntime: {onnxruntime_AlexNet_cost:.2f} ms, MKL: {mkl_AlexNet_cost:.2f} ms')
-
-    helix_ResNet_cost, onnxruntime_ResNet_cost, mkl_ResNet_cost = 0, 0, 0
     for M, N, K in ResNet_MNKList:
         helix_ResNet_cost += get_Helix_result(prof_dict, M, N, K)
-        onnxruntime_ResNet_cost += get_onnxruntime_result(M, N, K)
-        mkl_ResNet_cost += get_MKL_result(M, N, K)
-    print(f'ResNet: Helix: {helix_ResNet_cost:.2f} ms, onnxruntime: {onnxruntime_ResNet_cost:.2f} ms, MKL: {mkl_ResNet_cost:.2f} ms')
-
-    helix_GoogleNet_cost, onnxruntime_GoogleNet_cost, mkl_GoogleNet_cost = 0, 0, 0
     for M, N, K in GoogleNet_MNKList:
         helix_GoogleNet_cost += get_Helix_result(prof_dict, M, N, K)
+
+    print(f'AlexNet: {helix_AlexNet_cost:.2f} ms, ResNet: {helix_ResNet_cost:.2f} ms, GoogleNet: {helix_GoogleNet_cost:.2f} ms')
+
+def x86_CPU_onnxruntime_model_level_CNN_benchmark():
+    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+
+    onnxruntime_AlexNet_cost, onnxruntime_ResNet_cost, onnxruntime_GoogleNet_cost = 0, 0, 0
+    for M, N, K in AlexNet_MNKList:
+        onnxruntime_AlexNet_cost += get_onnxruntime_result(M, N, K)
+    for M, N, K in ResNet_MNKList:
+        onnxruntime_ResNet_cost += get_onnxruntime_result(M, N, K)
+    for M, N, K in GoogleNet_MNKList:
         onnxruntime_GoogleNet_cost += get_onnxruntime_result(M, N, K)
+
+    print(f'AlexNet: {onnxruntime_AlexNet_cost:.2f} ms, ResNet: {onnxruntime_ResNet_cost:.2f} ms, GoogleNet: {onnxruntime_GoogleNet_cost:.2f} ms')
+
+def x86_CPU_MKL_model_level_CNN_benchmark():
+    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+
+    mkl_AlexNet_cost, mkl_ResNet_cost, mkl_GoogleNet_cost = 0, 0, 0
+    for M, N, K in AlexNet_MNKList:
+        mkl_AlexNet_cost += get_MKL_result(M, N, K)
+    for M, N, K in ResNet_MNKList:
+        mkl_ResNet_cost += get_MKL_result(M, N, K)
+    for M, N, K in GoogleNet_MNKList:
         mkl_GoogleNet_cost += get_MKL_result(M, N, K)
-    print(f'GoogleNet: Helix: {helix_GoogleNet_cost:.2f} ms, onnxruntime: {onnxruntime_GoogleNet_cost:.2f} ms, MKL: {mkl_GoogleNet_cost:.2f} ms')
+
+    print(f'AlexNet: {mkl_AlexNet_cost:.2f} ms, ResNet: {mkl_ResNet_cost:.2f} ms, GoogleNet: {mkl_GoogleNet_cost:.2f} ms')
+
+if __name__ == "__main__":
+
+    x86_CPU_Helix_model_level_CNN_benchmark()
+    x86_CPU_onnxruntime_model_level_CNN_benchmark()
+    x86_CPU_MKL_model_level_CNN_benchmark()

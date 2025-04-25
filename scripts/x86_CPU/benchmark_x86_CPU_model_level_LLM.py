@@ -178,31 +178,51 @@ def get_MKL_result(M, N, K):
     else:
         return 0
 
-if __name__ == "__main__":
-
+def x86_CPU_Helix_model_level_LLM_benchmark():
     with open(f'{root_path}/build/prof_dict/x86_CPU_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])
 
     Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
 
-    helix_Bert_cost, onnxruntime_Bert_cost, mkl_Bert_cost = 0, 0, 0
+    helix_Bert_cost, helix_LLAMA2_cost, helix_GPT2_cost = 0
     for M, N, K in Bert_MNKList:
         helix_Bert_cost += get_Helix_result(prof_dict, M, N, K)
-        onnxruntime_Bert_cost += get_onnxruntime_result(M, N, K)
-        mkl_Bert_cost += get_MKL_result(M, N, K)
-    print(f'Bert: Helix: {helix_Bert_cost:.2f} ms, onnxruntime: {onnxruntime_Bert_cost:.2f} ms, MKL: {mkl_Bert_cost:.2f} ms')
-
-    helix_LLAMA2_cost, onnxruntime_LLAMA2_cost, mkl_LLAMA2_cost = 0, 0, 0
     for M, N, K in LLAMA2_MNKList:
         helix_LLAMA2_cost += get_Helix_result(prof_dict, M, N, K)
-        onnxruntime_LLAMA2_cost += get_onnxruntime_result(M, N, K)
-        mkl_LLAMA2_cost += get_MKL_result(M, N, K)
-    print(f'LLAMA2: Helix: {helix_LLAMA2_cost:.2f} ms, onnxruntime: {onnxruntime_LLAMA2_cost:.2f} ms, MKL: {mkl_LLAMA2_cost:.2f} ms')
-
-    helix_GPT2_cost, onnxruntime_GPT2_cost, mkl_GPT2_cost = 0, 0, 0
     for M, N, K in GPT2_MNKList:
         helix_GPT2_cost += get_Helix_result(prof_dict, M, N, K)
+
+    print(f'Bert: {helix_Bert_cost:.2f} ms, LLAMA2: {helix_LLAMA2_cost:.2f} ms, GPT2: {helix_GPT2_cost:.2f} ms')
+
+def x86_CPU_onnxruntime_model_level_LLM_benchmark():
+    Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
+
+    onnxruntime_Bert_cost, onnxruntime_LLAMA2_cost, onnxruntime_GPT2_cost = 0
+    for M, N, K in Bert_MNKList:
+        onnxruntime_Bert_cost += get_onnxruntime_result(M, N, K)
+    for M, N, K in LLAMA2_MNKList:
+        onnxruntime_LLAMA2_cost += get_onnxruntime_result(M, N, K)
+    for M, N, K in GPT2_MNKList:
         onnxruntime_GPT2_cost += get_onnxruntime_result(M, N, K)
+
+    print(f'Bert: {onnxruntime_Bert_cost:.2f} ms, LLAMA2: {onnxruntime_LLAMA2_cost:.2f} ms, GPT2: {onnxruntime_GPT2_cost:.2f} ms')
+
+def x86_CPU_MKL_model_level_LLM_benchmark():
+    Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
+
+    mkl_Bert_cost, mkl_LLAMA2_cost, mkl_GPT2_cost = 0
+    for M, N, K in Bert_MNKList:
+        mkl_Bert_cost += get_MKL_result(M, N, K)
+    for M, N, K in LLAMA2_MNKList:
+        mkl_LLAMA2_cost += get_MKL_result(M, N, K)
+    for M, N, K in GPT2_MNKList:
         mkl_GPT2_cost += get_MKL_result(M, N, K)
-    print(f'GPT2: Helix: {helix_GPT2_cost:.2f} ms, onnxruntime: {onnxruntime_GPT2_cost:.2f} ms, MKL: {mkl_GPT2_cost:.2f} ms')
+
+    print(f'Bert: {mkl_Bert_cost:.2f} ms, LLAMA2: {mkl_LLAMA2_cost:.2f} ms, GPT2: {mkl_GPT2_cost:.2f} ms')
+
+if __name__ == "__main__":
+
+    x86_CPU_Helix_model_level_LLM_benchmark()
+    x86_CPU_onnxruntime_model_level_LLM_benchmark()
+    x86_CPU_MKL_model_level_LLM_benchmark()

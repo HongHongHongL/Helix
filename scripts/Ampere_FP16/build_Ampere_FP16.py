@@ -2,7 +2,7 @@ import os
 from tqdm import tqdm
 
 root_path = os.getcwd()
-COMPILE_OPTIONS = "-O3 -std=c++17 -arch sm_80 -lcublas -w"
+COMPILE_OPTIONS = "-O3 -std=c++17 -arch sm_80 -lcublas -lcudnn -w"
 
 def compile_kernel(kernel_name, k_stage=None, block_rows=None, block_cols=None, warp_rows=None, warp_cols=None):
     output_name = kernel_name
@@ -73,7 +73,14 @@ def build_cublas_FP16_gemm_kernel():
 
     compile_kernel("cublas_f16")
 
+def build_cudnn_FP16_conv_kernel():
+    if not os.path.exists(f"{root_path}/build/bin_fp16"):
+        os.makedirs(f"{root_path}/build/bin_fp16")
+
+    compile_kernel("cudnn_fp16")
+
 if __name__ == "__main__":
 
     build_Helix_Ampere_FP16_gemm_kernel()
     build_cublas_FP16_gemm_kernel()
+    build_cudnn_FP16_conv_kernel()

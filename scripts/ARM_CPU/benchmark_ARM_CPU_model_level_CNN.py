@@ -178,6 +178,49 @@ def get_ACL_result(M, N, K):
     else:
         return 0
 
+def ARM_CPU_Helix_model_level_CNN_benchmark():
+    with open(f'{root_path}/build/prof_dict/ARM_CPU_cost_model.dict', 'r') as f:
+        lines = f.readlines()
+        prof_dict = eval(lines[0])
+
+    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+
+    helix_AlexNet_cost, helix_ResNet_cost, helix_GoogleNet_cost = 0, 0, 0
+    for M, N, K in AlexNet_MNKList:
+        helix_AlexNet_cost += get_Helix_result(prof_dict, M, N, K)
+    for M, N, K in ResNet_MNKList:
+        helix_ResNet_cost += get_Helix_result(prof_dict, M, N, K)
+    for M, N, K in GoogleNet_MNKList:
+        helix_GoogleNet_cost += get_Helix_result(prof_dict, M, N, K)
+
+    print(f'AlexNet: {helix_AlexNet_cost:.2f} ms, ResNet: {helix_ResNet_cost:.2f} ms, GoogleNet: {helix_GoogleNet_cost:.2f} ms')
+
+def ARM_CPU_onnxruntime_model_level_CNN_benchmark():
+    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+
+    onnxruntime_AlexNet_cost, onnxruntime_ResNet_cost, onnxruntime_GoogleNet_cost = 0, 0, 0
+    for M, N, K in AlexNet_MNKList:
+        onnxruntime_AlexNet_cost += get_onnxruntime_result(M, N, K)
+    for M, N, K in ResNet_MNKList:
+        onnxruntime_ResNet_cost += get_onnxruntime_result(M, N, K)
+    for M, N, K in GoogleNet_MNKList:
+        onnxruntime_GoogleNet_cost += get_onnxruntime_result(M, N, K)
+
+    print(f'AlexNet: {onnxruntime_AlexNet_cost:.2f} ms, ResNet: {onnxruntime_ResNet_cost:.2f} ms, GoogleNet: {onnxruntime_GoogleNet_cost:.2f} ms')
+
+def ARM_CPU_ACL_model_level_CNN_benchmark():
+    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+
+    acl_AlexNet_cost, acl_ResNet_cost, acl_GoogleNet_cost = 0, 0, 0
+    for M, N, K in AlexNet_MNKList:
+        acl_AlexNet_cost += get_ACL_result(M, N, K)
+    for M, N, K in ResNet_MNKList:
+        acl_ResNet_cost += get_ACL_result(M, N, K)
+    for M, N, K in GoogleNet_MNKList:
+        acl_GoogleNet_cost += get_ACL_result(M, N, K)
+
+    print(f'AlexNet: {acl_AlexNet_cost:.2f} ms, ResNet: {acl_ResNet_cost:.2f} ms, GoogleNet: {acl_GoogleNet_cost:.2f} ms')
+
 if __name__ == "__main__":
 
     with open(f'{root_path}/build/prof_dict/ARM_CPU_cost_model.dict', 'r') as f:

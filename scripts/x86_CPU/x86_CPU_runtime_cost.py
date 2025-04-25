@@ -133,7 +133,7 @@ def get_Helix_runtime_cost(prof_dict, M, N, K):
 
     return (T2 - T1) / 100 / 1000, cost
 
-if __name__ == "__main__":
+def x86_CPU_runtime_cost():
 
     with open(f'{root_path}/build/prof_dict/ARM_CPU_cost_model.dict', 'r') as f:
         lines = f.readlines()
@@ -143,3 +143,7 @@ if __name__ == "__main__":
     for M, N, K in MNKList:
         runtime_cost, op_cost = get_Helix_runtime_cost(prof_dict, M, N, K)
         print(f'The runtime cost of {M}x{N}x{K} is {runtime_cost} ms, and the op cost is {op_cost} ms.')
+
+if __name__ == "__main__":
+
+    x86_CPU_runtime_cost()

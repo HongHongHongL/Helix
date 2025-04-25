@@ -66,7 +66,14 @@ def build_cublas_FP32_gemm_kernel():
 
     compile_kernel("cublas_f32")
 
+def build_cudnn_FP32_gemm_kernel():
+    if not os.path.exists(f"{root_path}/build/bin_fp32"):
+        os.makedirs(f"{root_path}/build/bin_fp32")
+
+    compile_kernel("cudnn_f32")
+
 if __name__ == "__main__":
 
     build_Helix_Ampere_FP32_gemm_kernel()
     build_cublas_FP32_gemm_kernel()
+    build_cudnn_FP32_gemm_kernel()

@@ -36,28 +36,37 @@ def get_cublas_result(M, N, K):
 
     return cost
 
-if __name__ == "__main__":
-
+def Ampere_FP16_Helix_model_level_CNN_benchmark():
     with open(f'{root_path}/build/prof_dict/Ampere_FP16_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])
 
     AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
 
-    helix_AlexNet_cost, cublas_AlexNet_cost = 0, 0
+    helix_AlexNet_cost, helix_ResNet_cost, helix_GoogleNet_cost = 0, 0, 0
     for M, N, K in AlexNet_MNKList:
         helix_AlexNet_cost += get_Helix_result(prof_dict, M, N, K)
-        cublas_AlexNet_cost += get_cublas_result(M, N, K)
-    print(f'AlexNet: Helix: {helix_AlexNet_cost:.2f} ms, cublas: {cublas_AlexNet_cost:.2f} ms')
-
-    helix_ResNet_cost, cublas_ResNet_cost = 0, 0
     for M, N, K in ResNet_MNKList:
         helix_ResNet_cost += get_Helix_result(prof_dict, M, N, K)
-        cublas_ResNet_cost += get_cublas_result(M, N, K)
-    print(f'ResNet: Helix: {helix_ResNet_cost:.2f} ms, cublas: {cublas_ResNet_cost:.2f} ms')
-
-    helix_GoogleNet_cost, cublas_GoogleNet_cost = 0, 0
     for M, N, K in GoogleNet_MNKList:
         helix_GoogleNet_cost += get_Helix_result(prof_dict, M, N, K)
+
+    print(f'AlexNet: {helix_AlexNet_cost:.2f} ms, ResNet: {helix_ResNet_cost:.2f} ms, GoogleNet: {helix_GoogleNet_cost:.2f} ms')
+
+def Ampere_FP16_cublas_model_level_CNN_benchmark():
+    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+
+    cublas_AlexNet_cost, cublas_ResNet_cost, cublas_GoogleNet_cost = 0, 0, 0
+    for M, N, K in AlexNet_MNKList:
+        cublas_AlexNet_cost += get_cublas_result(M, N, K)
+    for M, N, K in ResNet_MNKList:
+        cublas_ResNet_cost += get_cublas_result(M, N, K)
+    for M, N, K in GoogleNet_MNKList:
         cublas_GoogleNet_cost += get_cublas_result(M, N, K)
-    print(f'GoogleNet: Helix: {helix_GoogleNet_cost:.2f} ms, cublas: {cublas_GoogleNet_cost:.2f} ms')
+
+    print(f'AlexNet: {cublas_AlexNet_cost:.2f} ms, ResNet: {cublas_ResNet_cost:.2f} ms, GoogleNet: {cublas_GoogleNet_cost:.2f} ms')
+
+if __name__ == "__main__":
+
+    Ampere_FP16_Helix_model_level_CNN_benchmark()
+    Ampere_FP16_cublas_model_level_CNN_benchmark()

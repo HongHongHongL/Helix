@@ -178,31 +178,51 @@ def get_ACL_result(M, N, K):
     else:
         return 0
 
-if __name__ == "__main__":
-
+def ARM_CPU_Helix_model_level_LLM_benchmark():
     with open(f'{root_path}/build/prof_dict/ARM_CPU_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])
 
     Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
 
-    helix_Bert_cost, onnxruntime_Bert_cost, mkl_Bert_cost = 0, 0, 0
+    helix_Bert_cost, helix_LLAMA2_cost, helix_GPT2_cost = 0, 0, 0
     for M, N, K in Bert_MNKList:
         helix_Bert_cost += get_Helix_result(prof_dict, M, N, K)
-        onnxruntime_Bert_cost += get_onnxruntime_result(M, N, K)
-        acl_Bert_cost += get_ACL_result(M, N, K)
-    print(f'Bert: Helix: {helix_Bert_cost:.2f} ms, onnxruntime: {onnxruntime_Bert_cost:.2f} ms, ACL: {acl_Bert_cost:.2f} ms')
-
-    helix_LLAMA2_cost, onnxruntime_LLAMA2_cost, mkl_LLAMA2_cost = 0, 0, 0
     for M, N, K in LLAMA2_MNKList:
         helix_LLAMA2_cost += get_Helix_result(prof_dict, M, N, K)
-        onnxruntime_LLAMA2_cost += get_onnxruntime_result(M, N, K)
-        acl_LLAMA2_cost += get_ACL_result(M, N, K)
-    print(f'LLAMA2: Helix: {helix_LLAMA2_cost:.2f} ms, onnxruntime: {onnxruntime_LLAMA2_cost:.2f} ms, ACL: {acl_LLAMA2_cost:.2f} ms')
-
-    helix_GPT2_cost, onnxruntime_GPT2_cost, mkl_GPT2_cost = 0, 0, 0
     for M, N, K in GPT2_MNKList:
         helix_GPT2_cost += get_Helix_result(prof_dict, M, N, K)
+
+    print(f'Bert: {helix_Bert_cost:.2f} ms, LLAMA2: {helix_LLAMA2_cost:.2f} ms, GPT2: {helix_GPT2_cost:.2f} ms')
+
+def ARM_CPU_onnxruntime_model_level_LLM_benchmark():
+    Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
+
+    onnxruntime_Bert_cost, onnxruntime_LLAMA2_cost, onnxruntime_GPT2_cost = 0, 0, 0
+    for M, N, K in Bert_MNKList:
+        onnxruntime_Bert_cost += get_onnxruntime_result(M, N, K)
+    for M, N, K in LLAMA2_MNKList:
+        onnxruntime_LLAMA2_cost += get_onnxruntime_result(M, N, K)
+    for M, N, K in GPT2_MNKList:
         onnxruntime_GPT2_cost += get_onnxruntime_result(M, N, K)
+
+    print(f'Bert: {onnxruntime_Bert_cost:.2f} ms, LLAMA2: {onnxruntime_LLAMA2_cost:.2f} ms, GPT2: {onnxruntime_GPT2_cost:.2f} ms')
+
+def ARM_CPU_ACL_model_level_LLM_benchmark():
+    Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
+
+    acl_Bert_cost, acl_LLAMA2_cost, acl_GPT2_cost = 0, 0, 0
+    for M, N, K in Bert_MNKList:
+        acl_Bert_cost += get_ACL_result(M, N, K)
+    for M, N, K in LLAMA2_MNKList:
+        acl_LLAMA2_cost += get_ACL_result(M, N, K)
+    for M, N, K in GPT2_MNKList:
         acl_GPT2_cost += get_ACL_result(M, N, K)
-    print(f'GPT2: Helix: {helix_GPT2_cost:.2f} ms, onnxruntime: {onnxruntime_GPT2_cost:.2f} ms, ACL: {acl_GPT2_cost:.2f} ms')
+
+    print(f'Bert: {acl_Bert_cost:.2f} ms, LLAMA2: {acl_LLAMA2_cost:.2f} ms, GPT2: {acl_GPT2_cost:.2f} ms')
+
+if __name__ == "__main__":
+
+    ARM_CPU_Helix_model_level_LLM_benchmark()
+    ARM_CPU_onnxruntime_model_level_LLM_benchmark()
+    ARM_CPU_ACL_model_level_LLM_benchmark()

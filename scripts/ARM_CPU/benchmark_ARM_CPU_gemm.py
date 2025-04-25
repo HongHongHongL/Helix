@@ -179,8 +179,7 @@ def get_ACL_result(M, N, K):
     else:
         return 0
 
-if __name__ == "__main__":
-
+def ARM_CPU_Helix_op_level_GEMM_benchmark():
     with open(f'{root_path}/build/prof_dict/ARM_CPU_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])
@@ -188,6 +187,22 @@ if __name__ == "__main__":
     MNKList = get_gemm_op_MNKList()
     for M, N, K in MNKList:
         helix_gflops = get_Helix_result(prof_dict, M, N, K)
+        print(f'{M}x{N}x{K}: Helix: {helix_gflops:.2f} GFLOPS')
+
+def ARM_CPU_onnxruntime_op_level_GEMM_benchmark():
+    MNKList = get_gemm_op_MNKList()
+    for M, N, K in MNKList:
         onnxruntime_gflops = get_onnxruntime_result(M, N, K)
+        print(f'{M}x{N}x{K}: onnxruntime: {onnxruntime_gflops:.2f} GFLOPS')
+
+def ARM_CPU_ACL_op_level_GEMM_benchmark():
+    MNKList = get_gemm_op_MNKList()
+    for M, N, K in MNKList:
         acl_gflops = get_ACL_result(M, N, K)
-        print(f'{M}x{N}x{K}: Helix: {helix_gflops:.2f} GFLOPS, onnxruntime: {onnxruntime_gflops:.2f} GFLOPS, ACL: {acl_gflops:.2f} GFLOPS')
+        print(f'{M}x{N}x{K}: ACL: {acl_gflops:.2f} GFLOPS')
+
+if __name__ == "__main__":
+
+    ARM_CPU_Helix_op_level_GEMM_benchmark()
+    ARM_CPU_onnxruntime_op_level_GEMM_benchmark()
+    ARM_CPU_ACL_op_level_GEMM_benchmark()

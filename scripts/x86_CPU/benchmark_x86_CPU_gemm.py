@@ -179,8 +179,7 @@ def get_MKL_result(M, N, K):
     else:
         return 0
 
-if __name__ == "__main__":
-
+def x86_CPU_Helix_op_level_GEMM_benchmark():
     with open(f'{root_path}/build/prof_dict/x86_CPU_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])
@@ -188,6 +187,22 @@ if __name__ == "__main__":
     MNKList = get_gemm_op_MNKList()
     for M, N, K in MNKList:
         helix_gflops = get_Helix_result(prof_dict, M, N, K)
+        print(f'{M}x{N}x{K}: Helix: {helix_gflops:.2f} GFLOPS')
+
+def x86_CPU_onnxruntime_op_level_GEMM_benchmark():
+    MNKList = get_gemm_op_MNKList()
+    for M, N, K in MNKList:
         onnxruntime_gflops = get_onnxruntime_result(M, N, K)
+        print(f'{M}x{N}x{K}: onnxruntime: {onnxruntime_gflops:.2f} GFLOPS')
+
+def x86_CPU_MKL_op_level_GEMM_benchmark():
+    MNKList = get_gemm_op_MNKList()
+    for M, N, K in MNKList:
         mkl_gflops = get_MKL_result(M, N, K)
-        print(f'{M}x{N}x{K}: Helix: {helix_gflops:.2f} GFLOPS, onnxruntime: {onnxruntime_gflops:.2f} GFLOPS, MKL: {mkl_gflops:.2f} GFLOPS')
+        print(f'{M}x{N}x{K}: MKL: {mkl_gflops:.2f} GFLOPS')
+
+if __name__ == "__main__":
+
+    x86_CPU_Helix_op_level_GEMM_benchmark()
+    x86_CPU_onnxruntime_op_level_GEMM_benchmark()
+    x86_CPU_MKL_op_level_GEMM_benchmark()

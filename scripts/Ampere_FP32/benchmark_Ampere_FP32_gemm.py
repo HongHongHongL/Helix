@@ -34,8 +34,7 @@ def get_cublas_result(M, N, K):
 
     return tflops
 
-if __name__ == "__main__":
-
+def Ampere_FP32_Helix_op_level_GEMM_benchmark():
     with open(f'{root_path}/build/prof_dict/Ampere_FP32_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])
@@ -43,5 +42,15 @@ if __name__ == "__main__":
     MNKList = get_gemm_op_MNKList()
     for M, N, K in MNKList:
         helix_tflops = get_Helix_result(prof_dict, M, N, K)
+        print(f'{M}x{N}x{K}: Helix: {helix_tflops:.2f} TFLOPS')
+
+def Ampere_FP32_cublas_op_level_GEMM_benchmark():
+    MNKList = get_gemm_op_MNKList()
+    for M, N, K in MNKList:
         cublas_tflops = get_cublas_result(M, N, K)
-        print(f'{M}x{N}x{K}: Helix: {helix_tflops:.2f} TFLOPS, cublas: {cublas_tflops:.2f} TFLOPS')
+        print(f'{M}x{N}x{K}: cublas: {cublas_tflops:.2f} TFLOPS')
+
+if __name__ == "__main__":
+
+    Ampere_FP32_Helix_op_level_GEMM_benchmark()
+    Ampere_FP32_cublas_op_level_GEMM_benchmark()

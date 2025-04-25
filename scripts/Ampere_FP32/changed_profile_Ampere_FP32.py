@@ -13,7 +13,7 @@ def is_valid_config(BMt, BNt, BM, BN):
 def get_copy_value(base_value, threshold=4):
     return base_value if base_value < threshold else threshold
 
-def profile_Helix_Ampere_FP16_gemm_kernel():
+def profile_Helix_Ampere_FP32_gemm_kernel():
     if not os.path.exists(f"{root_path}/build/prof_dict"):
         os.makedirs(f"{root_path}/build/prof_dict")
 
@@ -49,4 +49,4 @@ def profile_Helix_Ampere_FP16_gemm_kernel():
 
 if __name__ == "__main__":
 
-    profile_Helix_Ampere_FP16_gemm_kernel()
+    profile_Helix_Ampere_FP32_gemm_kernel()
