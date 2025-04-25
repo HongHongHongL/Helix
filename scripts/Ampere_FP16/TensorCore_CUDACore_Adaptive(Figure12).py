@@ -73,4 +73,4 @@ if __name__ == "__main__":
         helix_tflops = get_Helix_result(prof_dict, M, N, K)
         gemv_tflops = get_gemv_result(M, N, K)
         gemm_tflops = get_gemm_result(prof_dict, M, N, K)
-        print(f'{M}x{N}x{K}: Helix {helix_tflops:.2f} TFLOPS, Gemv {gemv_tflops:.2f} TFLOPS, GEMM {gemm_tflops:.2f} TFLOPS')        
+        print(f'{M}x{N}x{K}: Helix {helix_tflops:.2f} TFLOPS, Gemv {gemv_tflops:.2f} TFLOPS, GEMM {gemm_tflops:.2f} TFLOPS')

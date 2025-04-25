@@ -107,7 +107,16 @@ def profile_Helix_x86_CPU_gemm_kernel():
                 N = Nx * N1 * N2
                 K = 16 * K1
 
-                cost = value[0] / (20 * 16) * (Mx * Nx)
+                sch = sch_gemm(M, N, K, M1, M2, N1, N2, K1)
+                func = tvm.build(sch.mod, target=target)
+
+                evaluator = func.time_evaluator(func.entry_name, dev, number=1000)
+                d = np.random.rand(M, K).astype(dtype)
+                w = np.random.rand(K, N).astype(dtype)
+                Data = tvm.nd.array(d, dev)
+                Weight = tvm.nd.array(w, dev)
+                O = tvm.nd.array(np.zeros((M, N), dtype=dtype), dev)
+                cost = evaluator(Data, Weight, O).mean
                 flops = (2 * M * N * K * 1e-9) / cost
 
                 if flops > peak_flops * 0.6:

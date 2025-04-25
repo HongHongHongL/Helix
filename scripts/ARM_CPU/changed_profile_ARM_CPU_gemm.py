@@ -9,11 +9,11 @@ from tvm.script import tir as T
 
 root_path = os.getcwd()
 
-target = "llvm -mcpu=skylake-avx512"
+target = "llvm"
 dtype = "float32"
 dev = tvm.device(target, 0)
 
-peak_flops = 153
+peak_flops = 48
 
 @T.prim_func
 def gemm(a: T.handle, b: T.handle, c: T.handle) -> None:
@@ -59,24 +59,24 @@ def sch_gemm(m, n, k, m1, m2, n1, n2, k1):
 
     return sch
 
-def profile_Helix_x86_CPU_gemm_kernel():
+def profile_Helix_ARM_CPU_gemm_kernel():
     if not os.path.exists(f"{root_path}/build/prof_dict"):
         os.makedirs(f"{root_path}/build/prof_dict")
 
     register_block_dict = {}
 
-    print("Start profiling x86 CPU GEMM kernel ...")
-    with tqdm(total=9*5*6, desc="profiling") as pbar:
+    print("Start profiling ARM CPU GEMM kernel ...")
+    with tqdm(total=9*4*4, desc="profiling") as pbar:
         for M1 in range(1, 10):
             for M2 in range(1, 2):
-                for N1 in range(1, 6):
+                for N1 in range(1, 5):
                     for N2 in range(1, 2):
-                        for K1 in range(1, 7):
-                            if N1 == 3 or N1 == 5:
-                                N2 = N1
+                        for K1 in range(1, 5):
+                            if N1 == 3:
                                 N1 = 1
-                            M, N, K = M1 * M2 * 20, N1 * N2 * 16, K1 * 16
-                            sch = sch_gemm(M, N, K, M1, M2, N1 * 16, N2, K1)
+                                N2 = 3
+                            M, N, K = M1 * M2 * 20, N1 * N2 * 4 * 4, K1 * 16
+                            sch = sch_gemm(M, N, K, M1, M2, N1 * 4, N2, K1)
                             func = tvm.build(sch.mod, target=target)
 
                             evaluator = func.time_evaluator(func.entry_name, dev, number=1000)
@@ -88,7 +88,7 @@ def profile_Helix_x86_CPU_gemm_kernel():
                             cost = evaluator(Data, Weight, O).mean
                             flops = (2 * M * N * K * 1e-9) / cost
                             if flops > peak_flops * 0.6:
-                                register_block_dict[(M1 * M2, N1 * N2 * 16, K1)] = (cost, flops)
+                                register_block_dict[(M1 * M2, N1 * N2 * 4, K1)] = (cost, flops)
                             pbar.update(1)
 
     cache_block_dict = {}
@@ -97,9 +97,9 @@ def profile_Helix_x86_CPU_gemm_kernel():
         M1, N1, K1 = key
         M2 = 1
         N2 = 1
-        if N1 == 48 or N1 == 80:
-            N2 = N1 // 16
-            N1 = 16
+        if (N1 == 12):
+            N1 = 4
+            N2 = 3
 
         for Mx in range(1, 256 // M1 + 1):
             for Nx in range(1, 256 // (N1 * N2) + 1):
@@ -107,7 +107,16 @@ def profile_Helix_x86_CPU_gemm_kernel():
                 N = Nx * N1 * N2
                 K = 16 * K1
 
-                cost = value[0] / (20 * 16) * (Mx * Nx)
+                sch = sch_gemm(M, N, K, M1, M2, N1, N2, K1)
+                func = tvm.build(sch.mod, target=target)
+
+                evaluator = func.time_evaluator(func.entry_name, dev, number=1000)
+                d = np.random.rand(M, K).astype(dtype)
+                w = np.random.rand(K, N).astype(dtype)
+                Data = tvm.nd.array(d, dev)
+                Weight = tvm.nd.array(w, dev)
+                O = tvm.nd.array(np.zeros((M, N), dtype=dtype), dev)
+                cost = evaluator(Data, Weight, O).mean
                 flops = (2 * M * N * K * 1e-9) / cost
 
                 if flops > peak_flops * 0.6:
@@ -117,13 +126,13 @@ def profile_Helix_x86_CPU_gemm_kernel():
                     else:
                         cache_block_dict[(M, N, K)] = (key, cost, flops)
 
-    with open(f'{root_path}/build/prof_dict/x86_CPU_cost_model.dict', 'w') as f:
+    with open(f'{root_path}/build/prof_dict/ARM_CPU_cost_model.dict', 'w') as f:
         f.write(str(cache_block_dict))
     print("Profile finished.")
 
 if __name__ == "__main__":
 
     T1 = time.perf_counter()
-    profile_Helix_x86_CPU_gemm_kernel()
+    profile_Helix_ARM_CPU_gemm_kernel()
     T2 = time.perf_counter()
     print(f'Profiling time: {T2-T1} seconds')

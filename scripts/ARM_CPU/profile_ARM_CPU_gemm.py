@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 from tqdm import tqdm
 
@@ -122,4 +123,7 @@ def profile_Helix_ARM_CPU_gemm_kernel():
 
 if __name__ == "__main__":
 
+    T1 = time.perf_counter()
     profile_Helix_ARM_CPU_gemm_kernel()
+    T2 = time.perf_counter()
+    print(f'Profiling time: {T2-T1} seconds')
