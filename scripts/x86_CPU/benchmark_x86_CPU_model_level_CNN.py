@@ -60,9 +60,9 @@ def get_tiling(prof_dict, M, N, K):
 
     M1, M2, M3 = min_reg[0], 1, min_cache[0] // min_reg[0]
     N1, N2, N3 = min_reg[1], 1, min_cache[1] // min_reg[1]
-    if N1 == 12:
-        N1 = 4
-        N2 = 3
+    if N1 == 48 or N1 == 80:
+        N2 = N1 // 16
+        N1 = 16
     K1 = min_reg[2]
 
     return M1, M2, M3, N1, N2, N3, K1
