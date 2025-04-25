@@ -11,7 +11,7 @@ import onnx
 from onnx import helper, TensorProto
 import onnxruntime
 
-from utils.get_benchmark_shape_list import get_conv_op_MNKList
+from utils.get_benchmark_shape_list import get_conv_op_shape_list
 
 root_path = os.getcwd()
 
@@ -135,23 +135,30 @@ def get_Helix_result(prof_dict, M, N, K):
 
     return gflops
 
-def get_onnxruntime_result(M, N, K):
-    x = helper.make_tensor_value_info('x', TensorProto.FLOAT, [M, K])
-    w = helper.make_tensor_value_info('w', TensorProto.FLOAT, [K, N])
-    y = helper.make_tensor_value_info('y', TensorProto.FLOAT, [M, N])
+def get_onnxruntime_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad):
+    x = helper.make_tensor_value_info('x', TensorProto.FLOAT, [batch, input_channel, H, W])
+    w = helper.make_tensor_value_info('w', TensorProto.FLOAT, [output_channel, input_channel, kH, kW])
+    y = helper.make_tensor_value_info('y', TensorProto.FLOAT, [batch, output_channel, (H + pad * 2 - kH) // stride + 1, (W + pad * 2 - kW) // stride + 1])
 
-    node = helper.make_node(
-        "Gemm",
+    node_with_padding = helper.make_node(
+        "Conv",
         inputs=["x", "w"],
         outputs=["y"],
+        kernel_shape=[kH, kW],
+        strides=[stride, stride],
+        dilations=[1, 1],
+        group=1,
+        pads=[pad, pad, pad, pad],
     )
+
     graph_def = helper.make_graph(
-        [node],
-        'test_gemm_model',
+        [node_with_padding],
+        'test_conv_model',
         [x, w],
         [y],
     )
-    model = onnx.helper.make_model(graph_def, producer_name='onnx-example', opset_imports=[helper.make_opsetid('', 13)])
+
+    model = onnx.helper.make_model(graph_def, producer_name='onnx-example')
 
     opts = onnxruntime.SessionOptions()
     opts.intra_op_num_threads = num_thread
@@ -159,8 +166,8 @@ def get_onnxruntime_result(M, N, K):
     ort_session = onnxruntime.InferenceSession(model.SerializeToString(), sess_options=opts, providers=['CPUExecutionProvider'])
 
     ort_inputs = {}
-    ort_inputs['x'] = np.random.rand(M, K).astype(np.float32)
-    ort_inputs['w'] = np.random.rand(K, N).astype(np.float32)
+    data = []
+    ort_inputs['x'] = np.random.rand(batch, input_channel, H, W).astype(np.float32)
 
     outputs = [x.name for x in ort_session.get_outputs()]
 
@@ -168,7 +175,7 @@ def get_onnxruntime_result(M, N, K):
     for _ in range(100):
         ort_outs = ort_session.run(outputs, ort_inputs)
     T2 =time.perf_counter()
-    return 2 * M * N * K * 1e-9 / ((T2 - T1) / 100)
+    return 2 * batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1) * output_channel * input_channel * kH * kW * 1e-9 / ((T2 - T1) / 100)
 
 def get_ACL_result(M, N, K):
     if os.path.exists(f'{root_path}/build/bin_acl/benchmark_neon_sgemm'):
@@ -184,20 +191,26 @@ def ARM_CPU_Helix_op_level_Conv_benchmark():
         lines = f.readlines()
         prof_dict = eval(lines[0])
 
-    MNKList = get_conv_op_MNKList()
-    for M, N, K in MNKList:
+    shape_list = get_conv_op_shape_list()
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in shape_list:
+        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
+        N = output_channel
+        K = input_channel * kH * kW
         helix_gflops = get_Helix_result(prof_dict, M, N, K)
-        print(f'{M}x{N}x{K}: Helix: {helix_gflops:.2f} GFLOPS')
+        print(f'Helix: {helix_gflops:.2f} GFLOPS')
 
 def ARM_CPU_onnxruntime_op_level_Conv_benchmark():
-    MNKList = get_conv_op_MNKList()
-    for M, N, K in MNKList:
-        onnxruntime_gflops = get_onnxruntime_result(M, N, K)
-        print(f'{M}x{N}x{K}: onnxruntime: {onnxruntime_gflops:.2f} GFLOPS')
+    shape_list = get_conv_op_shape_list()
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in shape_list:
+        onnxruntime_gflops = get_onnxruntime_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
+        print(f'onnxruntime: {onnxruntime_gflops:.2f} GFLOPS')
 
 def ARM_CPU_ACL_op_level_Conv_benchmark():
-    MNKList = get_conv_op_MNKList()
-    for M, N, K in MNKList:
+    shape_list = get_conv_op_shape_list()
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in shape_list:
+        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
+        N = output_channel
+        K = input_channel * kH * kW
         acl_gflops = get_ACL_result(M, N, K)
         print(f'{M}x{N}x{K}: ACL: {acl_gflops:.2f} GFLOPS')
 

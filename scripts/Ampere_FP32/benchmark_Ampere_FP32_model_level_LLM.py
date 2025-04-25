@@ -64,26 +64,5 @@ def Ampere_FP32_cublas_model_level_LLM_benchmark():
 
 if __name__ == "__main__":
 
-    with open(f'{root_path}/build/prof_dict/Ampere_FP32_cost_model.dict', 'r') as f:
-        lines = f.readlines()
-        prof_dict = eval(lines[0])
-
-    Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
-
-    helix_Bert_cost, cublas_Bert_cost = 0, 0
-    for M, N, K in Bert_MNKList:
-        helix_Bert_cost += get_Helix_result(prof_dict, M, N, K)
-        cublas_Bert_cost += get_cublas_result(M, N, K)
-    print(f'Bert: Helix: {helix_Bert_cost:.2f} ms, cublas: {cublas_Bert_cost:.2f} ms')
-
-    helix_LLAMA2_cost, cublas_LLAMA2_cost = 0, 0
-    for M, N, K in LLAMA2_MNKList:
-        helix_LLAMA2_cost += get_Helix_result(prof_dict, M, N, K)
-        cublas_LLAMA2_cost += get_cublas_result(M, N, K)
-    print(f'LLAMA2: Helix: {helix_LLAMA2_cost:.2f} ms, cublas: {cublas_LLAMA2_cost:.2f} ms')
-
-    helix_GPT2_cost, cublas_GPT2_cost = 0, 0
-    for M, N, K in GPT2_MNKList:
-        helix_GPT2_cost += get_Helix_result(prof_dict, M, N, K)
-        cublas_GPT2_cost += get_cublas_result(M, N, K)
-    print(f'GPT2: Helix: {helix_GPT2_cost:.2f} ms, cublas: {cublas_GPT2_cost:.2f} ms')
+    Ampere_FP32_Helix_model_level_LLM_benchmark()
+    Ampere_FP32_cublas_model_level_LLM_benchmark()

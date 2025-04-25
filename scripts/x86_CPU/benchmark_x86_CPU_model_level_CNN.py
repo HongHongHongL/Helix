@@ -11,7 +11,7 @@ import onnx
 from onnx import helper, TensorProto
 import onnxruntime
 
-from utils.get_benchmark_shape_list import get_cnn_opset_MNKList
+from utils.get_benchmark_shape_list import get_cnn_opset_shape_List
 
 root_path = os.getcwd()
 
@@ -134,23 +134,30 @@ def get_Helix_result(prof_dict, M, N, K):
 
     return cost
 
-def get_onnxruntime_result(M, N, K):
-    x = helper.make_tensor_value_info('x', TensorProto.FLOAT, [M, K])
-    w = helper.make_tensor_value_info('w', TensorProto.FLOAT, [K, N])
-    y = helper.make_tensor_value_info('y', TensorProto.FLOAT, [M, N])
+def get_onnxruntime_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad):
+    x = helper.make_tensor_value_info('x', TensorProto.FLOAT, [batch, input_channel, H, W])
+    w = helper.make_tensor_value_info('w', TensorProto.FLOAT, [output_channel, input_channel, kH, kW])
+    y = helper.make_tensor_value_info('y', TensorProto.FLOAT, [batch, output_channel, (H + pad * 2 - kH) // stride + 1, (W + pad * 2 - kW) // stride + 1])
 
-    node = helper.make_node(
-        "Gemm",
+    node_with_padding = helper.make_node(
+        "Conv",
         inputs=["x", "w"],
         outputs=["y"],
+        kernel_shape=[kH, kW],
+        strides=[stride, stride],
+        dilations=[1, 1],
+        group=1,
+        pads=[pad, pad, pad, pad],
     )
+
     graph_def = helper.make_graph(
-        [node],
-        'test_gemm_model',
+        [node_with_padding],
+        'test_conv_model',
         [x, w],
         [y],
     )
-    model = onnx.helper.make_model(graph_def, producer_name='onnx-example', opset_imports=[helper.make_opsetid('', 13)])
+
+    model = onnx.helper.make_model(graph_def, producer_name='onnx-example')
 
     opts = onnxruntime.SessionOptions()
     opts.intra_op_num_threads = num_thread
@@ -158,8 +165,8 @@ def get_onnxruntime_result(M, N, K):
     ort_session = onnxruntime.InferenceSession(model.SerializeToString(), sess_options=opts, providers=['CPUExecutionProvider'])
 
     ort_inputs = {}
-    ort_inputs['x'] = np.random.rand(M, K).astype(np.float32)
-    ort_inputs['w'] = np.random.rand(K, N).astype(np.float32)
+    data = []
+    ort_inputs['x'] = np.random.rand(batch, input_channel, H, W).astype(np.float32)
 
     outputs = [x.name for x in ort_session.get_outputs()]
 
@@ -169,12 +176,14 @@ def get_onnxruntime_result(M, N, K):
     T2 =time.perf_counter()
     return (T2 - T1) / 100
 
-def get_MKL_result(M, N, K):
-    if os.path.exists(f'{root_path}/build/bin_mkl/run_benchmark'):
-        result = os.popen(f'{root_path}/build/bin_mkl/run_benchmark {M} {N} {K}')
+def get_oneDNN_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad):
+    if os.path.exists(f'{root_path}/build/bin_onednn/benchdnn'):
+        with open(f'{root_path}/build/bin_onednn/shape', 'w') as f:
+            f.write(f'mb{batch}ic{input_channel}ih{H}iw{W}oc{output_channel}oh{(H + 2 * pad - kH) // stride + 1}ow{(W + 2 * pad - kW) // stride + 1}kh{kH}kw{kW}sh{stride}sw{stride}ph{pad}pw{pad}')
+        result = os.popen(f'{root_path}/build/bin_onednn/benchdnn --conv --dt=f32 --dir=FWD_B --batch={root_path}/build/bin_onednn/shape')
         context = result.read()
-        flops = float(context.splitlines()[0])
-        return 2 * M * N * K * 1e-9 / flops
+        cost = float(context.splitlines()[0])
+        return cost
     else:
         return 0
 
@@ -183,46 +192,55 @@ def x86_CPU_Helix_model_level_CNN_benchmark():
         lines = f.readlines()
         prof_dict = eval(lines[0])
 
-    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+    AlexNet_shape_list, ResNet_shape_list, GoogleNet_shape_list = get_cnn_opset_shape_List()
 
     helix_AlexNet_cost, helix_ResNet_cost, helix_GoogleNet_cost = 0, 0, 0
-    for M, N, K in AlexNet_MNKList:
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in AlexNet_shape_list:
+        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
+        N = output_channel
+        K = input_channel * kH * kW
         helix_AlexNet_cost += get_Helix_result(prof_dict, M, N, K)
-    for M, N, K in ResNet_MNKList:
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in ResNet_shape_list:
+        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
+        N = output_channel
+        K = input_channel * kH * kW
         helix_ResNet_cost += get_Helix_result(prof_dict, M, N, K)
-    for M, N, K in GoogleNet_MNKList:
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in GoogleNet_shape_list:
+        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
+        N = output_channel
+        K = input_channel * kH * kW
         helix_GoogleNet_cost += get_Helix_result(prof_dict, M, N, K)
 
     print(f'AlexNet: {helix_AlexNet_cost:.2f} ms, ResNet: {helix_ResNet_cost:.2f} ms, GoogleNet: {helix_GoogleNet_cost:.2f} ms')
 
 def x86_CPU_onnxruntime_model_level_CNN_benchmark():
-    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+    AlexNet_shape_list, ResNet_shape_list, GoogleNet_shape_list = get_cnn_opset_shape_List()
 
     onnxruntime_AlexNet_cost, onnxruntime_ResNet_cost, onnxruntime_GoogleNet_cost = 0, 0, 0
-    for M, N, K in AlexNet_MNKList:
-        onnxruntime_AlexNet_cost += get_onnxruntime_result(M, N, K)
-    for M, N, K in ResNet_MNKList:
-        onnxruntime_ResNet_cost += get_onnxruntime_result(M, N, K)
-    for M, N, K in GoogleNet_MNKList:
-        onnxruntime_GoogleNet_cost += get_onnxruntime_result(M, N, K)
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in AlexNet_shape_list:
+        onnxruntime_AlexNet_cost += get_onnxruntime_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in ResNet_shape_list:
+        onnxruntime_ResNet_cost += get_onnxruntime_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in GoogleNet_shape_list:
+        onnxruntime_GoogleNet_cost += get_onnxruntime_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
 
     print(f'AlexNet: {onnxruntime_AlexNet_cost:.2f} ms, ResNet: {onnxruntime_ResNet_cost:.2f} ms, GoogleNet: {onnxruntime_GoogleNet_cost:.2f} ms')
 
-def x86_CPU_MKL_model_level_CNN_benchmark():
-    AlexNet_MNKList, ResNet_MNKList, GoogleNet_MNKList = get_cnn_opset_MNKList()
+def x86_CPU_oneDNN_model_level_CNN_benchmark():
+    AlexNet_shape_list, ResNet_shape_list, GoogleNet_shape_list = get_cnn_opset_shape_List()
 
-    mkl_AlexNet_cost, mkl_ResNet_cost, mkl_GoogleNet_cost = 0, 0, 0
-    for M, N, K in AlexNet_MNKList:
-        mkl_AlexNet_cost += get_MKL_result(M, N, K)
-    for M, N, K in ResNet_MNKList:
-        mkl_ResNet_cost += get_MKL_result(M, N, K)
-    for M, N, K in GoogleNet_MNKList:
-        mkl_GoogleNet_cost += get_MKL_result(M, N, K)
+    oneDNN_AlexNet_cost, oneDNN_ResNet_cost, oneDNN_GoogleNet_cost = 0, 0, 0
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in AlexNet_shape_list:
+        oneDNN_AlexNet_cost += get_oneDNN_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in ResNet_shape_list:
+        oneDNN_ResNet_cost += get_oneDNN_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in GoogleNet_shape_list:
+        oneDNN_GoogleNet_cost += get_oneDNN_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
 
-    print(f'AlexNet: {mkl_AlexNet_cost:.2f} ms, ResNet: {mkl_ResNet_cost:.2f} ms, GoogleNet: {mkl_GoogleNet_cost:.2f} ms')
+    print(f'AlexNet: {oneDNN_AlexNet_cost:.2f} ms, ResNet: {oneDNN_ResNet_cost:.2f} ms, GoogleNet: {oneDNN_GoogleNet_cost:.2f} ms')
 
 if __name__ == "__main__":
 
     x86_CPU_Helix_model_level_CNN_benchmark()
     x86_CPU_onnxruntime_model_level_CNN_benchmark()
-    x86_CPU_MKL_model_level_CNN_benchmark()
+    x86_CPU_oneDNN_model_level_CNN_benchmark()

@@ -1,7 +1,7 @@
 import math
 import os
 
-from utils.get_benchmark_shape_list import get_conv_op_MNKList
+from utils.get_benchmark_shape_list import get_conv_op_shape_list
 
 root_path = os.getcwd()
 
@@ -29,11 +29,10 @@ def get_Helix_result(prof_dict, M, N, K):
 
     return tflops
 
-def get_cublas_result(M, N, K):
-    cmd = f'{root_path}/build/bin_fp16/cublas_f16 {M} {N} {K}'
+def get_cudnn_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad):
+    cmd = f'{root_path}/build/bin_fp16/cudnn_fp16 {batch} {input_channel} {H} {W} {output_channel} {kH} {kW} {stride} {pad} 1'
     result = os.popen(cmd)
-    cost = float(result.read().split()[-4])
-    tflops = 2 * M * N * K / 1e9 / cost
+    tflops = float(result.read().splitlines()[0])
 
     return tflops
 
@@ -42,18 +41,21 @@ def Ampere_FP16_Helix_op_level_Conv_benchmark():
         lines = f.readlines()
         prof_dict = eval(lines[0])
 
-    MNKList = get_conv_op_MNKList()
-    for M, N, K in MNKList:
+    shape_list = get_conv_op_shape_list()
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in shape_list:
+        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
+        N = output_channel
+        K = input_channel * kH * kW
         helix_tflops = get_Helix_result(prof_dict, M, N, K)
-        print(f'{M}x{N}x{K}: Helix: {helix_tflops:.2f} TFLOPS')
+        print(f'Helix: {helix_tflops:.2f} TFLOPS')
 
-def Ampere_FP16_cublas_op_level_Conv_benchmark():
-    MNKList = get_conv_op_MNKList()
-    for M, N, K in MNKList:
-        cublas_tflops = get_cublas_result(M, N, K)
-        print(f'{M}x{N}x{K}: cublas: {cublas_tflops:.2f} TFLOPS')
+def Ampere_FP16_cudnn_op_level_Conv_benchmark():
+    shape_list = get_conv_op_shape_list()
+    for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in shape_list:
+        cudnn_tflops = get_cudnn_result(batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
+        print(f'cudnn: {cudnn_tflops:.2f} TFLOPS')
 
 if __name__ == "__main__":
 
     Ampere_FP16_Helix_op_level_Conv_benchmark()
-    Ampere_FP16_cublas_op_level_Conv_benchmark()
+    Ampere_FP16_cudnn_op_level_Conv_benchmark()

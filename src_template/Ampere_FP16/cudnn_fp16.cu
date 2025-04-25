@@ -369,8 +369,8 @@ int main(int argc, char *argv[]) {
     log.close();
   }
   else {
-    printf("%f\n", runtime_ms / 1000000);
-    //printf("%f\n", gflops);
+    // printf("%f\n", runtime_ms / 1000000);
+    printf("%f\n", gflops);
     //std::cout << "Workspace size: " << ws_size << std::endl;
   }
   // printf("time:%f\n", runtime_ms);

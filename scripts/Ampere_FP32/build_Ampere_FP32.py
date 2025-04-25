@@ -70,7 +70,7 @@ def build_cudnn_FP32_gemm_kernel():
     if not os.path.exists(f"{root_path}/build/bin_fp32"):
         os.makedirs(f"{root_path}/build/bin_fp32")
 
-    compile_kernel("cudnn_f32")
+    compile_kernel("cudnn_fp32")
 
 if __name__ == "__main__":
 
