@@ -9,9 +9,7 @@ def cost_model(prof_dict, M, N, K):
     min_cost = float("inf")
     best_config = (1, 1, 1, 1, 1)
     for k, v in prof_dict.items():
-        num_block = math.ceil(M / k[1]) * math.ceil(N / k[2])
-        if k[5] == 1:
-            num_block *= 2
+        num_block = math.ceil(M / k[1]) * math.ceil(N / k[2]) * (k[5] + 1)
         w = math.ceil(num_block / 108)
         cost = w * v
         if min_cost > cost:
