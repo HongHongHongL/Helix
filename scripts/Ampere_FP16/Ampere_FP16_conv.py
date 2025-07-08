@@ -1,16 +1,13 @@
 import math
 import os
 
-from utils.get_benchmark_shape_list import get_gemm_op_MNKList
-
 import tvm
 from tvm.script import tir as T
 from tvm import tir
-import argparse
 import numpy as np
 from tvm.tir import tensor_intrin
 
-target = "nvidia/nvidia-a10"
+target = "nvidia/nvidia-a100"
 dtype = "float16"
 dev = tvm.device("cuda", 0)
 
@@ -443,17 +440,17 @@ def get_Ampere_FP16_conv_Helix_result(prof_dict, M, N, K, backend):
         tflops = 2 * M * N * K / 1e12 / cost
     else:
         #define K_STAGE 3 // 2 - 5
-        K_STAGE = 4
+        K_STAGE = best_config[0]
         #define BLOCK_ROWS 256 //256  32
-        BLOCK_ROWS = 128
+        BLOCK_ROWS = best_config[1]
         #define BLOCK_COLS 128 //128  32
-        BLOCK_COLS = 256
+        BLOCK_COLS = best_config[2]
         #define BLOCK_K    32 
         BLOCK_K = 32
         #define WARP_ROWS 64 // 128 64 32 16 
-        WARP_ROWS = 128
+        WARP_ROWS = best_config[3]
         #define WARP_COLS 64 // 128 64 32 16
-        WARP_COLS = 64
+        WARP_COLS = best_config[4]
         #define BLOCK_STRIDE 1 // < M / BLOCK_ROWS
         BLOCK_STRIDE = 1
         #define MMA_M 16
