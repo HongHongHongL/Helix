@@ -6,7 +6,7 @@ from Ampere_FP16_gemm import get_Ampere_FP16_gemm_Helix_result, get_Ampere_FP16_
 
 root_path = os.getcwd()
 
-def Ampere_FP16_Helix_model_level_LLM_benchmark(backend):
+def Ampere_FP16_Helix_model_level_LLM_benchmark(backend = "cuda"):
     with open(f'{root_path}/build/prof_dict/Ampere_FP16_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])

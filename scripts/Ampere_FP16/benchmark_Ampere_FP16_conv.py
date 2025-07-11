@@ -6,7 +6,7 @@ from Ampere_FP16_conv import get_Ampere_FP16_conv_Helix_result, get_Ampere_FP16_
 
 root_path = os.getcwd()
 
-def Ampere_FP16_Helix_op_level_Conv_benchmark(backend):
+def Ampere_FP16_Helix_op_level_Conv_benchmark(backend = "cuda"):
     with open(f'{root_path}/build/prof_dict/Ampere_FP16_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])

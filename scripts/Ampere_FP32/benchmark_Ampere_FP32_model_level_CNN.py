@@ -6,7 +6,7 @@ from Ampere_FP32_conv import get_Ampere_FP32_conv_Helix_result, get_Ampere_FP32_
 
 root_path = os.getcwd()
 
-def Ampere_FP32_Helix_model_level_CNN_benchmark(backend):
+def Ampere_FP32_Helix_model_level_CNN_benchmark(backend = "cuda"):
     with open(f'{root_path}/build/prof_dict/Ampere_FP32_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])

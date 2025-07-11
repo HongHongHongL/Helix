@@ -6,7 +6,7 @@ from Ampere_FP32_gemm import get_Ampere_FP32_gemm_Helix_result, get_Ampere_FP32_
 
 root_path = os.getcwd()
 
-def Ampere_FP32_Helix_op_level_GEMM_benchmark(backend):
+def Ampere_FP32_Helix_op_level_GEMM_benchmark(backend = "cuda"):
     with open(f'{root_path}/build/prof_dict/Ampere_FP32_cost_model.dict', 'r') as f:
         lines = f.readlines()
         prof_dict = eval(lines[0])
