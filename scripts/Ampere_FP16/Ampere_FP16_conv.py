@@ -428,15 +428,20 @@ def cost_model(prof_dict, M, N, K):
             best_config = k
     return best_config
 
-def get_Ampere_FP16_conv_Helix_result(prof_dict, M, N, K, backend):
+def get_Ampere_FP16_conv_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, kW, stride, pad, backend):
+    M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
+    N = output_channel
+    K = input_channel * kH * kW
     best_config = cost_model(prof_dict, M, N, K)
     if backend == "cuda":
+        cmd_im2col = f'{root_path}/build/bin_fp16/im2col {batch} {input_channel} {H} {W} {output_channel} {kH} {kW} {stride} {pad}'
         if best_config[0] == 0:
             cmd = f'{root_path}/build/bin_fp16/{"gemv" if best_config[5] == 0 else "gemv_splitK"} {M} {N} {K}'
         else:
             cmd = f'{root_path}/build/bin_fp16/{"gemm" if best_config[5] == 0 else "gemm_splitK"}_{best_config[0]}_{best_config[1]}_{best_config[2]}_{best_config[3]}_{best_config[4]} {math.ceil(M / best_config[1]) * best_config[1]} {math.ceil(N / best_config[2]) * best_config[2]} {K}'
+        result_im2col = os.popen(cmd_im2col)
         result = os.popen(cmd)
-        cost = float(result.read().split()[-8])
+        cost = float(result_im2col.read().split()[0]) + float(result.read().split()[-8])
         tflops = 2 * M * N * K / 1e12 / cost
     else:
         #define K_STAGE 3 // 2 - 5

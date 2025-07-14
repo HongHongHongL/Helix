@@ -39,7 +39,7 @@ def build_Helix_Ampere_FP32_gemm_kernel():
         os.makedirs(f"{root_path}/build/bin_fp32")
 
     print("Start building Ampere FP32 GEMM kernel ...")
-    with tqdm(total=3*4*5*3*8*8, desc="building") as pbar:
+    with tqdm(total=3*4*5*3*8*8+1, desc="building") as pbar:
         for WARP_ROW_THREAD in [1, 2, 4]:
             for TM in [1, 2, 4, 8]:
                 for TN in [1, 2, 4, 8, 16]:
@@ -58,6 +58,8 @@ def build_Helix_Ampere_FP32_gemm_kernel():
 
                                 compile_sgemm(BM, BN, BK, TM, TN, WARP_ROW_THREAD, COPY_A, COPY_B)
                                 pbar.update(1)
+        compile_kernel("im2col")
+        pbar.update(1)
     print("Build finished.")
 
 def build_cublas_FP32_gemm_kernel():

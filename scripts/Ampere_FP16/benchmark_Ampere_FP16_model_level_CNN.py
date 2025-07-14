@@ -15,22 +15,13 @@ def Ampere_FP16_Helix_model_level_CNN_benchmark(backend = "cuda"):
 
     helix_AlexNet_cost, helix_ResNet_cost, helix_GoogleNet_cost = 0, 0, 0
     for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in AlexNet_shape_list:
-        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
-        N = output_channel
-        K = input_channel * kH * kW
-        cost, _ = get_Ampere_FP16_conv_Helix_result(prof_dict, M, N, K, backend)
+        cost, _ = get_Ampere_FP16_conv_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, kW, stride, pad, backend)
         helix_AlexNet_cost += cost
     for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in ResNet_shape_list:
-        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
-        N = output_channel
-        K = input_channel * kH * kW
-        cost, _ = get_Ampere_FP16_conv_Helix_result(prof_dict, M, N, K, backend)
+        cost, _ = get_Ampere_FP16_conv_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, kW, stride, pad, backend)
         helix_ResNet_cost += cost
     for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in GoogleNet_shape_list:
-        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
-        N = output_channel
-        K = input_channel * kH * kW
-        cost, _ = get_Ampere_FP16_conv_Helix_result(prof_dict, M, N, K, backend)
+        cost, _ = get_Ampere_FP16_conv_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, kW, stride, pad, backend)
         helix_GoogleNet_cost += cost
 
     print(f'AlexNet: {helix_AlexNet_cost:.2f} ms, ResNet: {helix_ResNet_cost:.2f} ms, GoogleNet: {helix_GoogleNet_cost:.2f} ms')

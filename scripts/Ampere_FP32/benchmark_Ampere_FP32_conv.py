@@ -13,10 +13,7 @@ def Ampere_FP32_Helix_op_level_Conv_benchmark(backend = "cuda"):
 
     shape_list = get_conv_op_shape_list()
     for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in shape_list:
-        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
-        N = output_channel
-        K = input_channel * kH * kW
-        _, helix_tflops = get_Ampere_FP32_conv_Helix_result(prof_dict, M, N, K, backend)
+        _, helix_tflops = get_Ampere_FP32_conv_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, kW, stride, pad, backend)
         print(f'Helix: {helix_tflops:.2f} TFLOPS')
 
 def Ampere_FP32_cudnn_op_level_Conv_benchmark():

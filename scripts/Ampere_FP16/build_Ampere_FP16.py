@@ -43,7 +43,7 @@ def build_Helix_Ampere_FP16_gemm_kernel():
         os.makedirs(f"{root_path}/build/bin_fp16")
 
     print("Start building Ampere FP16 GEMM kernel ...")
-    with tqdm(total=(4*4*4*3*3+1)*2, desc="building") as pbar:
+    with tqdm(total=(4*4*4*3*3)*2+3, desc="building") as pbar:
         for K_STAGE in range(2, 6):
             for WARP_ROWS in [16, 32, 64, 128]:
                 for WARP_COLS in [16, 32, 64, 128]:
@@ -64,6 +64,8 @@ def build_Helix_Ampere_FP16_gemm_kernel():
         compile_kernel("gemv")
         pbar.update(1)
         compile_kernel("gemv_splitK")
+        pbar.update(1)
+        compile_kernel("im2col")
         pbar.update(1)
     print("Build finished.")
 
