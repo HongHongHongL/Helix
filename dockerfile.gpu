@@ -68,4 +68,7 @@ ENV TVM_HOME="/root/tvm"
 ENV PYTHONPATH /root/tvm/python:${PYTHONPATH}
 ENV KMP_AFFINITY="granularity=fine,verbose,compact,1,0"
 
+WORKDIR /root
+RUN git clone https://github.com/HongHongHongL/Helix.git
+
 CMD ["/bin/bash", "--login"]
