@@ -10,6 +10,13 @@ cd Helix
 export PYTHONPATH=$PYTHONPATH:path_to_Helix/scripts
 ```
 
+### Build the docker image
+
+```
+docker build -f dockerfile.cpu -t helix_cpu:latest .
+docker build -f dockerfile.gpu -t helix_gpu:latest .
+```
+
 ### Build and profile kernel
 
 #### Ampere FP16
