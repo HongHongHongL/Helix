@@ -22,7 +22,7 @@ dev = tvm.device(target, 0)
 num_thread = 48
 
 @T.prim_func
-def gemm(a: T.handle, b: T.handle, c: T.handle) -> None:
+def conv(a: T.handle, b: T.handle, c: T.handle) -> None:
 
     T.func_attr({"global_symbol": "main", "tir.noalias": True})
 
@@ -37,7 +37,7 @@ def gemm(a: T.handle, b: T.handle, c: T.handle) -> None:
     for m_i in T.serial(m):
         for n_i in T.serial(n):
             for k_i in T.serial(k):
-                with T.block("gemm"):
+                with T.block("conv"):
                     vm, vn, vk = T.axis.remap("SSR", [m_i, n_i, k_i])
                     with T.init():
                         C[vm, vn] = T.float32(0)
@@ -72,13 +72,13 @@ def sch_gemm(prof_dict, m, n, k):
 
     m1, m2, m3, n1, n2, n3, k1 = get_tiling(prof_dict, m, n, k)
 
-    data, weight, _ = gemm.params
-    sch = tir.Schedule(gemm.specialize(
+    data, weight, _ = conv.params
+    sch = tir.Schedule(conv.specialize(
         {
             data: tvm.tir.decl_buffer((math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(k / k1))), weight: tvm.tir.decl_buffer((math.ceil(k / k1), math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3))),
         }
     ))
-    gemm_block = sch.get_block("gemm")
+    gemm_block = sch.get_block("conv")
     vm, vn, vk = sch.get_loops(gemm_block)
     sch.split(vm, factors=[None, m3, m2, m1])
     sch.split(vn, factors=[None, n3, n2, n1])
@@ -116,9 +116,13 @@ def sch_gemm(prof_dict, m, n, k):
 
     return sch
 
-def get_Helix_result(prof_dict, M, N, K):
+def get_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, kW, stride, pad):    
     os.environ['TVM_NUM_THREADS'] = str(num_thread)
     os.environ['OMP_NUM_THREADS'] = str(num_thread)
+
+    M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
+    N = output_channel
+    K = input_channel * kH * kW
 
     sch = sch_gemm(prof_dict, M, N, K)
     func = tvm.build(sch.mod, target=target)
@@ -195,10 +199,7 @@ def x86_CPU_Helix_op_level_Conv_benchmark():
 
     shape_list = get_conv_op_shape_list()
     for batch, input_channel, H, W, output_channel, kH, kW, stride, pad in shape_list:
-        M = batch * ((H + 2 * pad - kH) // stride + 1) * ((W + 2 * pad - kW) // stride + 1)
-        N = output_channel
-        K = input_channel * kH * kW
-        helix_gflops = get_Helix_result(prof_dict, M, N, K)
+        helix_gflops = get_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, kW, stride, pad)
         print(f'Helix: {helix_gflops:.2f} GFLOPS')
 
 def x86_CPU_onnxruntime_op_level_Conv_benchmark():

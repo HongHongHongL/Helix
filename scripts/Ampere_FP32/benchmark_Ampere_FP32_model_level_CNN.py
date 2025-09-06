@@ -2,7 +2,7 @@ import math
 import os
 
 from utils.get_benchmark_shape_list import get_cnn_opset_shape_List
-from Ampere_FP32_conv import get_Ampere_FP32_conv_Helix_result, get_Ampere_FP32_conv_cudnn_result
+from Ampere_FP32.Ampere_FP32_conv import get_Ampere_FP32_conv_Helix_result, get_Ampere_FP32_conv_cudnn_result
 
 root_path = os.getcwd()
 

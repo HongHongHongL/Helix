@@ -2,7 +2,7 @@ import math
 import os
 
 from utils.get_benchmark_shape_list import get_gemm_op_MNKList
-from Ampere_FP32_gemm import get_Ampere_FP32_gemm_Helix_result, get_Ampere_FP32_gemm_cublas_result
+from Ampere_FP32.Ampere_FP32_gemm import get_Ampere_FP32_gemm_Helix_result, get_Ampere_FP32_gemm_cublas_result
 
 root_path = os.getcwd()
 

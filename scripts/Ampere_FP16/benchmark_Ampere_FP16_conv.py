@@ -2,7 +2,7 @@ import math
 import os
 
 from utils.get_benchmark_shape_list import get_conv_op_shape_list
-from Ampere_FP16_conv import get_Ampere_FP16_conv_Helix_result, get_Ampere_FP16_conv_cudnn_result
+from Ampere_FP16.Ampere_FP16_conv import get_Ampere_FP16_conv_Helix_result, get_Ampere_FP16_conv_cudnn_result
 
 root_path = os.getcwd()
 
