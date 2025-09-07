@@ -25,6 +25,14 @@ RUN wget https://github.com/gcc-mirror/gcc/archive/refs/tags/releases/gcc-12.1.0
 
 ENV LD_LIBRARY_PATH /opt/gcc-12.1.0/lib:/opt/gcc-12.1.0/lib64:$LD_LIBRARY_PATH
 
+RUN wget https://cmake.org/files/v3.18/cmake-3.18.4.tar.gz \
+        && tar xvf cmake-3.18.4.tar.gz \
+        && cd cmake-3.18.4 \
+        && ./bootstrap --prefix=/opt/cmake-3.18.4/ \
+        && make -j`nproc` \
+        && make install \
+        && rm -rf /tmp/cmake-*
+
 RUN git clone -b llvmorg-15.0.7 https://github.com/llvm/llvm-project.git \
 		&& mkdir /tmp/llvm-project/build \
 		&& cd /tmp/llvm-project/build \
@@ -61,12 +69,15 @@ RUN git clone --recursive https://github.com/apache/tvm -b v0.12.0 tvm \
              && cd /root/tvm/build \
              && echo set\(USE_LLVM /opt/llvm15.0.7/bin/llvm-config\) >> config.cmake \
              && cmake .. \
-             && make -j10
+             && make -j`nproc`
 ENV TVM_HOME="/root/tvm"
 ENV PYTHONPATH /root/tvm/python:${PYTHONPATH}
 ENV KMP_AFFINITY="granularity=fine,verbose,compact,1,0"
 
 WORKDIR /root
 RUN git clone https://github.com/HongHongHongL/Helix.git
+
+RUN pip3 install --upgrade pip
+RUN pip3 install numpy scipy psutil pandas tqdm pybind11
 
 CMD ["/bin/bash", "--login"]
