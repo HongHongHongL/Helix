@@ -75,7 +75,7 @@ def sch_gemm(prof_dict, m, n, k):
     data, weight, _ = gemm.params
     sch = tir.Schedule(gemm.specialize(
         {
-            data: tvm.tir.decl_buffer((math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(k / k1))), weight: tvm.tir.decl_buffer((math.ceil(k / k1), math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3))),
+            data: tvm.tir.decl_buffer((math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(k / k1) * k1)), weight: tvm.tir.decl_buffer((math.ceil(k / k1) * k1, math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3))),
         }
     ))
     gemm_block = sch.get_block("gemm")
@@ -114,13 +114,13 @@ def sch_gemm(prof_dict, m, n, k):
 
     sch.decompose_reduction(gemm_block, vm3)
 
-    return sch
+    return sch, math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3), math.ceil(k / k1) * k1
 
 def get_Helix_result(prof_dict, M, N, K):
     os.environ['TVM_NUM_THREADS'] = str(num_thread)
     os.environ['OMP_NUM_THREADS'] = str(num_thread)
 
-    sch = sch_gemm(prof_dict, M, N, K)
+    sch, M, N, K = sch_gemm(prof_dict, M, N, K)
     func = tvm.build(sch.mod, target=target)
 
     evaluator = func.time_evaluator(

@@ -75,7 +75,7 @@ def sch_gemm(prof_dict, m, n, k):
     data, weight, _ = conv.params
     sch = tir.Schedule(conv.specialize(
         {
-            data: tvm.tir.decl_buffer((math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(k / k1))), weight: tvm.tir.decl_buffer((math.ceil(k / k1), math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3))),
+            data: tvm.tir.decl_buffer((math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(k / k1) * k1)), weight: tvm.tir.decl_buffer((math.ceil(k / k1) * k1, math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3))),
         }
     ))
     gemm_block = sch.get_block("conv")
@@ -114,7 +114,7 @@ def sch_gemm(prof_dict, m, n, k):
 
     sch.decompose_reduction(gemm_block, vm3)
 
-    return sch
+    return sch, math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3), math.ceil(k / k1) * k1
 
 def get_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, kW, stride, pad):    
     os.environ['TVM_NUM_THREADS'] = str(num_thread)
@@ -124,7 +124,7 @@ def get_Helix_result(prof_dict, batch, input_channel, H, W, output_channel, kH, 
     N = output_channel
     K = input_channel * kH * kW
 
-    sch = sch_gemm(prof_dict, M, N, K)
+    sch, M, N, K = sch_gemm(prof_dict, M, N, K)
     func = tvm.build(sch.mod, target=target)
 
     evaluator = func.time_evaluator(

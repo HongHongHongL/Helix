@@ -75,7 +75,7 @@ def sch_gemm(prof_dict, m, n, k):
     data, weight, _ = gemm.params
     sch = tir.Schedule(gemm.specialize(
         {
-            data: tvm.tir.decl_buffer((math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(k / k1))), weight: tvm.tir.decl_buffer((math.ceil(k / k1), math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3))),
+            data: tvm.tir.decl_buffer((math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(k / k1) * k1)), weight: tvm.tir.decl_buffer((math.ceil(k / k1) * k1, math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3))),
         }
     ))
     gemm_block = sch.get_block("gemm")
@@ -114,13 +114,13 @@ def sch_gemm(prof_dict, m, n, k):
 
     sch.decompose_reduction(gemm_block, vm3)
 
-    return sch
+    return sch, math.ceil(m / (m1 * m2 * m3)) * (m1 * m2 * m3), math.ceil(n / (n1 * n2 * n3)) * (n1 * n2 * n3), math.ceil(k / k1) * k1
 
 def get_Helix_result(prof_dict, M, N, K):
     os.environ['TVM_NUM_THREADS'] = str(num_thread)
     os.environ['OMP_NUM_THREADS'] = str(num_thread)
 
-    sch = sch_gemm(prof_dict, M, N, K)
+    sch, M, N, K = sch_gemm(prof_dict, M, N, K)
     func = tvm.build(sch.mod, target=target)
 
     evaluator = func.time_evaluator(
@@ -185,7 +185,7 @@ def x86_CPU_Helix_model_level_LLM_benchmark():
 
     Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
 
-    helix_Bert_cost, helix_LLAMA2_cost, helix_GPT2_cost = 0
+    helix_Bert_cost, helix_LLAMA2_cost, helix_GPT2_cost = 0, 0, 0
     for M, N, K in Bert_MNKList:
         helix_Bert_cost += get_Helix_result(prof_dict, M, N, K)
     for M, N, K in LLAMA2_MNKList:
@@ -198,7 +198,7 @@ def x86_CPU_Helix_model_level_LLM_benchmark():
 def x86_CPU_onnxruntime_model_level_LLM_benchmark():
     Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
 
-    onnxruntime_Bert_cost, onnxruntime_LLAMA2_cost, onnxruntime_GPT2_cost = 0
+    onnxruntime_Bert_cost, onnxruntime_LLAMA2_cost, onnxruntime_GPT2_cost = 0, 0, 0
     for M, N, K in Bert_MNKList:
         onnxruntime_Bert_cost += get_onnxruntime_result(M, N, K)
     for M, N, K in LLAMA2_MNKList:
@@ -211,7 +211,7 @@ def x86_CPU_onnxruntime_model_level_LLM_benchmark():
 def x86_CPU_MKL_model_level_LLM_benchmark():
     Bert_MNKList, LLAMA2_MNKList, GPT2_MNKList = get_llm_opset_MNKList()
 
-    mkl_Bert_cost, mkl_LLAMA2_cost, mkl_GPT2_cost = 0
+    mkl_Bert_cost, mkl_LLAMA2_cost, mkl_GPT2_cost = 0, 0, 0
     for M, N, K in Bert_MNKList:
         mkl_Bert_cost += get_MKL_result(M, N, K)
     for M, N, K in LLAMA2_MNKList:
