@@ -67,7 +67,7 @@ RUN { \
         } >> /etc/ld.so.conf.d/10-gcc-12.conf
 RUN ldconfig
 ENV PATH /opt/llvm15.0.7/bin:${PATH}
-ENV LIBRARY_PATH="/opt/llvm15.0.7/lib/x86_64-unknown-linux-gnu"
+# ENV LIBRARY_PATH="/opt/llvm15.0.7/lib/x86_64-unknown-linux-gnu"
 WORKDIR /root
 
 RUN git clone --recursive https://github.com/apache/tvm -b v0.12.0 tvm \
@@ -75,6 +75,8 @@ RUN git clone --recursive https://github.com/apache/tvm -b v0.12.0 tvm \
              && cd /root/tvm/build \
              && echo set\(USE_LLVM /opt/llvm15.0.7/bin/llvm-config\) >> config.cmake \
              && cmake .. \
+                -DCMAKE_C_COMPILER=/opt/gcc-12.1.0/bin/gcc \
+                -DCMAKE_CXX_COMPILER=/opt/gcc-12.1.0/bin/g++ \
              && make -j`nproc`
 ENV TVM_HOME="/root/tvm"
 ENV PYTHONPATH /root/tvm/python:${PYTHONPATH}
