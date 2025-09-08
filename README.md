@@ -22,21 +22,21 @@ docker build -f dockerfile.gpu -t helix_gpu:latest .
 #### Ampere FP16
 
 ```
-python3 scripts/Ampere_FP16/build_Ampere_FP16_gemm.py
-python3 scripts/Ampere_FP16/profile_Ampere_FP16_gemm.py
+python3 scripts/Ampere_FP16/build_Ampere_FP16.py
+python3 scripts/Ampere_FP16/profile_Ampere_FP16.py
 ```
 
 #### Ampere FP32
 
 ```
-python3 scripts/Ampere_FP32/build_Ampere_FP32_gemm.py
-python3 scripts/Ampere_FP32/profile_Ampere_FP32_gemm.py
+python3 scripts/Ampere_FP32/build_Ampere_FP32.py
+python3 scripts/Ampere_FP32/profile_Ampere_FP32.py
 ```
 
 #### x86 CPU
 
 ```
-python3 scripts/x86_CPU/profile_x86_CPU_gemm.py
+python3 scripts/x86_CPU/profile_x86_CPU.py
 ```
 
 ##### oneDNN
@@ -46,7 +46,7 @@ https://github.com/uxlfoundation/oneDNN/blob/main/tests/benchdnn/doc/driver_conv
 #### ARM CPU
 
 ```
-python3 scripts/ARM_CPU/profile_ARM_CPU_gemm.py
+python3 scripts/ARM_CPU/profile_ARM_CPU.py
 ```
 
 ##### ACL
