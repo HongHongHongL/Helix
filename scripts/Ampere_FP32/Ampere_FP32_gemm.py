@@ -103,8 +103,8 @@ def get_Ampere_FP32_gemm_Helix_result(prof_dict, M, N, K, backend):
     if backend == "cuda":
         cmd = f'{root_path}/build/bin_fp32/sgemm_{best_config[0]}_{best_config[1]}_{best_config[2]}_{best_config[3]}_{best_config[4]}_{best_config[5]}_{best_config[6]}_{best_config[7]} {math.ceil(M / best_config[0]) * best_config[0]} {math.ceil(N / best_config[1]) * best_config[1]} {K}'
         result = os.popen(cmd)
-        cost = float(result.read().split()[-8])
-        tflops = 2 * M * N * K / 1e12 / cost
+        cost = float(result.read().split()[-8]) * 1e3
+        tflops = 2 * M * N * K / 1e9 / cost
     else:
         M4, M3, M2, M1 = 16, 8, 4, 2
         M5 = M // (M4 * M3 * M2 * M1)

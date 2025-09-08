@@ -108,8 +108,8 @@ def get_Ampere_FP32_conv_Helix_result(prof_dict, batch, input_channel, H, W, out
         cmd = f'{root_path}/build/bin_fp32/sgemm_{best_config[0]}_{best_config[1]}_{best_config[2]}_{best_config[3]}_{best_config[4]}_{best_config[5]}_{best_config[6]}_{best_config[7]} {math.ceil(M / best_config[0]) * best_config[0]} {math.ceil(N / best_config[1]) * best_config[1]} {K}'
         result_im2col = os.popen(cmd_im2col)
         result = os.popen(cmd)
-        cost = float(result_im2col.read().split()[0]) + float(result.read().split()[-8])
-        tflops = 2 * M * N * K / 1e12 / cost
+        cost = float(result_im2col.read().split()[0]) + float(result.read().split()[-8]) * 1e3
+        tflops = 2 * M * N * K / 1e9 / cost
     else:
         M4, M3, M2, M1 = 16, 8, 4, 2
         M5 = M // (M4 * M3 * M2 * M1)

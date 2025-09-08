@@ -188,7 +188,7 @@ int main(int arg, char* argv[]){
         //printf("M N K = %6d %6d %6d, ", M, N, K);
         //printf("Time = %12.8lf %12.8lf %12.8lf us \n", min_sec, avg_sec, max_sec);
         //printf("%f\n", min_sec, avg_sec, max_sec);
-        printf("%f\n", avg_sec);
+        printf("%f\n", avg_sec / 1e9);
         //printf("AVG Performance = %10.4lf Gflops\n", avg_Gflops);
         //if(avg_Gflops < 300) printf("%f\n", avg_Gflops);
         //else printf("0\n");

@@ -441,8 +441,9 @@ def get_Ampere_FP16_conv_Helix_result(prof_dict, batch, input_channel, H, W, out
             cmd = f'{root_path}/build/bin_fp16/{"gemm" if best_config[5] == 0 else "gemm_splitK"}_{best_config[0]}_{best_config[1]}_{best_config[2]}_{best_config[3]}_{best_config[4]} {math.ceil(M / best_config[1]) * best_config[1]} {math.ceil(N / best_config[2]) * best_config[2]} {K}'
         result_im2col = os.popen(cmd_im2col)
         result = os.popen(cmd)
-        cost = float(result_im2col.read().split()[0]) + float(result.read().split()[-8])
-        tflops = 2 * M * N * K / 1e12 / cost
+        print(result_im2col.read(), result.read())
+        cost = float(result_im2col.read().split()[0]) + float(result.read().split()[-8]) * 1e3
+        tflops = 2 * M * N * K / 1e9 / cost
     else:
         #define K_STAGE 3 // 2 - 5
         K_STAGE = best_config[0]
