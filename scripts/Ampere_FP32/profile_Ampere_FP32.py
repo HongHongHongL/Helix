@@ -41,7 +41,7 @@ def profile_Helix_Ampere_FP32_gemm_kernel():
                                     try:
                                         cost = result.read().split()[-8]
                                     except:
-                                        print(f"Can't use config {cmd}. Error: {cmd} {result.read()}")
+                                        print(f"Skip config {cmd}.")
                                         cost = float('inf')
                                     prof_dict[(BM, BN, BK, TM, TN, WARP_ROW_THREAD, COPY_A, COPY_B)] = float(cost)
                                     pbar.update(1)

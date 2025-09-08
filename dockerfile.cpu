@@ -35,6 +35,10 @@ RUN wget https://cmake.org/files/v3.18/cmake-3.18.4.tar.gz \
         && make install \
         && rm -rf /tmp/cmake-*
 
+RUN ln -s /opt/cmake-3.18.4/bin/cmake /usr/local/bin/cmake \
+    && ln -s /opt/cmake-3.18.4/bin/cpack /usr/local/bin/cpack \
+    && ln -s /opt/cmake-3.18.4/bin/ctest /usr/local/bin/ctest
+
 RUN git clone -b llvmorg-15.0.7 https://github.com/llvm/llvm-project.git \
 		&& mkdir /tmp/llvm-project/build \
 		&& cd /tmp/llvm-project/build \
