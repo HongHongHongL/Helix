@@ -25,6 +25,8 @@ RUN wget https://github.com/gcc-mirror/gcc/archive/refs/tags/releases/gcc-12.1.0
 
 ENV LD_LIBRARY_PATH /opt/gcc-12.1.0/lib:/opt/gcc-12.1.0/lib64:$LD_LIBRARY_PATH
 
+RUN apt-get -y install libssl-dev
+
 RUN wget https://cmake.org/files/v3.18/cmake-3.18.4.tar.gz \
         && tar xvf cmake-3.18.4.tar.gz \
         && cd cmake-3.18.4 \
@@ -79,5 +81,6 @@ RUN git clone https://github.com/HongHongHongL/Helix.git
 
 RUN pip3 install --upgrade pip
 RUN pip3 install numpy scipy psutil pandas tqdm pybind11
+RUN pip3 install onnx onnxruntime
 
 CMD ["/bin/bash", "--login"]
