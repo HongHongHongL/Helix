@@ -25,14 +25,14 @@ def compile_sgemm(BM, BN, BK, TM, TN, WARP_ROW_THREAD, COPY_A, COPY_B):
         f"-DCOPY_B_SHM_REG_FLOAT={COPY_B} "
         f"-o {root_path}/build/bin_fp32/{output_name}"
     )
-    os.system(compile_cmd)
+    os.popen(compile_cmd)
 
 def compile_kernel(kernel_name):
     output_name = kernel_name
     compile_cmd = f"nvcc {root_path}/src_template/Ampere_FP32/{kernel_name}.cu {COMPILE_OPTIONS}"
     
     compile_cmd += f" -o {root_path}/build/bin_fp32/{output_name}"
-    os.system(compile_cmd)
+    os.popen(compile_cmd)
 
 def build_Helix_Ampere_FP32_gemm_kernel():
     if not os.path.exists(f"{root_path}/build/bin_fp32"):

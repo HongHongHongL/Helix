@@ -21,7 +21,10 @@ def get_all_candidate_performance(prof_dict, M, N, K):
     print(f'Best candidate id: {min_id}, config = {min_config}')
     id = 0
     for k, v in prof_dict.items():
-        cmd = f'{root_path}/build/bin_fp16/{"gemm" if k[5] == 0 else "gemm_splitK"}_{k[0]}_{k[1]}_{k[2]}_{k[3]}_{k[4]} {math.ceil(M / k[1]) * k[1]} {math.ceil(N / k[2]) * k[2]} {K}'
+        if k[0] == 0:
+            cmd = f'{root_path}/build/bin_fp16/{"gemv" if k[5] == 0 else "gemv_splitK"} {M} {N} {K}'
+        else:
+            cmd = f'{root_path}/build/bin_fp16/{"gemm" if k[5] == 0 else "gemm_splitK"}_{k[0]}_{k[1]}_{k[2]}_{k[3]}_{k[4]} {math.ceil(M / k[1]) * k[1]} {math.ceil(N / k[2]) * k[2]} {K}'
         result = os.popen(cmd)
         cost = float(result.read().split()[-8])
         tflops = 2 * M * N * K / 1e12 / cost
